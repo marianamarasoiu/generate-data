@@ -1,0 +1,7 @@
+name: generate_data
+version: 0.0.1
+description: A simple data generator from drawing on a canvas
+dependencies:
+  browser: any
+dev_dependencies:
+#  unittest: any
