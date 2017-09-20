@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:html';
 import 'dart:math' as math;
 
@@ -7,7 +6,7 @@ List<List<int>> points = [];
 
 math.Random randomGenerator = new math.Random();
 int variance = 100; // in pixels
-int pointSize = 2; // in pixels
+int pointSize = 5; // in pixels
 
 void main() {
   drawPointsOnMouseMove();
@@ -66,8 +65,13 @@ void drawPointsOnMouseMove() {
   int canvasX = canvasRectangle.left; // the top left corner of the canvas
   int canvasY = canvasRectangle.top; // the top left corner of the canvas
   int canvasHeight = canvasRectangle.height;
-  // Event listeners for when the user draws with the mouse
+  
+  // this becomes true on mouseDown/touchStart and false on mouseUp/touchEnd.
+  bool drawingStarted = false;
+
+  // When the user draws with the mouse:
   canvas.onMouseDown.listen((MouseEvent mouseDown) {
+    drawingStarted = true;
     // find the x and y of the mouse relative to the canvas.
     // mouseDown.client.x and canvasX are both relative to the top left corner of the entire page
     int x = mouseDown.client.x - canvasX;
@@ -76,33 +80,39 @@ void drawPointsOnMouseMove() {
     x = generateNormalDistributedValueAroundMean(x, variance).abs(); // use absolute values (abs()) to not have points outside the borders of the canvas
     y = generateNormalDistributedValueAroundMean(y, variance).abs();
     points.add([x, canvasHeight - y]);
-
     context.fillRect(x, y, pointSize, pointSize);
+  });
     
-    StreamSubscription mouseMoveListener = canvas.onMouseMove.listen((MouseEvent mouseMove) {
-      int x = mouseMove.client.x - canvasX;
-      int y = mouseMove.client.y - canvasY;
+  canvas.onMouseMove.listen((MouseEvent mouseMove) {
+    if (drawingStarted == false) {
+      return;
+    }
+    int x = mouseMove.client.x - canvasX;
+    int y = mouseMove.client.y - canvasY;
 
-      x = generateNormalDistributedValueAroundMean(x, variance).abs();
-      y = generateNormalDistributedValueAroundMean(y, variance).abs();
-      points.add([x, canvasHeight - y]);
-      context.fillRect(x, y, pointSize, pointSize);
-    });
+    x = generateNormalDistributedValueAroundMean(x, variance).abs();
+    y = generateNormalDistributedValueAroundMean(y, variance).abs();
+    points.add([x, canvasHeight - y]);
+    context.fillRect(x, y, pointSize, pointSize);
+  });
 
-    canvas.onMouseUp.first.then((MouseEvent mouseUp) {
-      int x = mouseUp.client.x - canvasX;
-      int y = mouseUp.client.y - canvasY;
-      
-      x = generateNormalDistributedValueAroundMean(x, variance).abs();
-      y = generateNormalDistributedValueAroundMean(y, variance).abs();
-      points.add([x, canvasHeight - y]);
-      context.fillRect(x, y, pointSize, pointSize);
-      mouseMoveListener.cancel();
-    });
+  canvas.onMouseUp.listen((MouseEvent mouseUp) {
+    if (drawingStarted == false) {
+      return;
+    }
+    drawingStarted = false;
+    int x = mouseUp.client.x - canvasX;
+    int y = mouseUp.client.y - canvasY;
+
+    x = generateNormalDistributedValueAroundMean(x, variance).abs();
+    y = generateNormalDistributedValueAroundMean(y, variance).abs();
+    points.add([x, canvasHeight - y]);
+    context.fillRect(x, y, pointSize, pointSize);
   });
 
   // Event listeners for when the user draws via a touch screen.
   canvas.onTouchStart.listen((TouchEvent touchStart) {
+    drawingStarted = true;
     // find the x and y of the mouse relative to the canvas.
     // mouseDown.client.x and canvasX are both relative to the top left corner of the entire page
     int x = touchStart.changedTouches.first.client.x - canvasX;
@@ -111,29 +121,34 @@ void drawPointsOnMouseMove() {
     x = generateNormalDistributedValueAroundMean(x, variance).abs(); // use absolute values (abs()) to not have points outside the borders of the canvas
     y = generateNormalDistributedValueAroundMean(y, variance).abs();
     points.add([x, canvasHeight - y]);
-
     context.fillRect(x, y, pointSize, pointSize);
+  });
     
-    StreamSubscription touchMoveListener = canvas.onTouchMove.listen((TouchEvent touchMove) {
-      int x = touchMove.changedTouches.first.client.x - canvasX;
-      int y = touchMove.changedTouches.first.client.y - canvasY;
+  canvas.onTouchMove.listen((TouchEvent touchMove) {
+    if (drawingStarted == false) {
+      return;
+    }
+    int x = touchMove.changedTouches.first.client.x - canvasX;
+    int y = touchMove.changedTouches.first.client.y - canvasY;
 
-      x = generateNormalDistributedValueAroundMean(x, variance).abs();
-      y = generateNormalDistributedValueAroundMean(y, variance).abs();
-      points.add([x, canvasHeight - y]);
-      context.fillRect(x, y, pointSize, pointSize);
-    });
+    x = generateNormalDistributedValueAroundMean(x, variance).abs();
+    y = generateNormalDistributedValueAroundMean(y, variance).abs();
+    points.add([x, canvasHeight - y]);
+    context.fillRect(x, y, pointSize, pointSize);
+  });
 
-    canvas.onTouchEnd.first.then((TouchEvent touchEnd) {
-      int x = touchEnd.changedTouches.first.client.x - canvasX;
-      int y = touchEnd.changedTouches.first.client.y - canvasY;
-      
-      x = generateNormalDistributedValueAroundMean(x, variance).abs();
-      y = generateNormalDistributedValueAroundMean(y, variance).abs();
-      points.add([x, canvasHeight - y]);
-      context.fillRect(x, y, pointSize, pointSize);
-      touchMoveListener.cancel();
-    });
+  canvas.onTouchEnd.first.then((TouchEvent touchEnd) {
+    if (drawingStarted == false) {
+      return;
+    }
+    drawingStarted = false;
+    int x = touchEnd.changedTouches.first.client.x - canvasX;
+    int y = touchEnd.changedTouches.first.client.y - canvasY;
+
+    x = generateNormalDistributedValueAroundMean(x, variance).abs();
+    y = generateNormalDistributedValueAroundMean(y, variance).abs();
+    points.add([x, canvasHeight - y]);
+    context.fillRect(x, y, pointSize, pointSize);
   });
 }
 
