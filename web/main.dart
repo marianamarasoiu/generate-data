@@ -66,6 +66,7 @@ void drawPointsOnMouseMove() {
   int canvasX = canvasRectangle.left; // the top left corner of the canvas
   int canvasY = canvasRectangle.top; // the top left corner of the canvas
   int canvasHeight = canvasRectangle.height;
+  // Event listeners for when the user draws with the mouse
   canvas.onMouseDown.listen((MouseEvent mouseDown) {
     // find the x and y of the mouse relative to the canvas.
     // mouseDown.client.x and canvasX are both relative to the top left corner of the entire page
@@ -97,6 +98,41 @@ void drawPointsOnMouseMove() {
       points.add([x, canvasHeight - y]);
       context.fillRect(x, y, pointSize, pointSize);
       mouseMoveListener.cancel();
+    });
+  });
+
+  // Event listeners for when the user draws via a touch screen.
+  canvas.onTouchStart.listen((TouchEvent touchStart) {
+    // find the x and y of the mouse relative to the canvas.
+    // mouseDown.client.x and canvasX are both relative to the top left corner of the entire page
+    int x = touchStart.touches.first.client.x - canvasX;
+    int y = touchStart.touches.first.client.y - canvasY;
+
+    x = generateNormalDistributedValueAroundMean(x, variance).abs(); // use absolute values (abs()) to not have points outside the borders of the canvas
+    y = generateNormalDistributedValueAroundMean(y, variance).abs();
+    points.add([x, canvasHeight - y]);
+
+    context.fillRect(x, y, pointSize, pointSize);
+    
+    StreamSubscription touchMoveListener = canvas.onTouchMove.listen((TouchEvent touchMove) {
+      int x = touchMove.touches.first.client.x - canvasX;
+      int y = touchMove.touches.first.client.y - canvasY;
+
+      x = generateNormalDistributedValueAroundMean(x, variance).abs();
+      y = generateNormalDistributedValueAroundMean(y, variance).abs();
+      points.add([x, canvasHeight - y]);
+      context.fillRect(x, y, pointSize, pointSize);
+    });
+
+    canvas.onTouchEnd.first.then((TouchEvent touchEnd) {
+      int x = touchEnd.touches.first.client.x - canvasX;
+      int y = touchEnd.touches.first.client.y - canvasY;
+      
+      x = generateNormalDistributedValueAroundMean(x, variance).abs();
+      y = generateNormalDistributedValueAroundMean(y, variance).abs();
+      points.add([x, canvasHeight - y]);
+      context.fillRect(x, y, pointSize, pointSize);
+      touchMoveListener.cancel();
     });
   });
 }
